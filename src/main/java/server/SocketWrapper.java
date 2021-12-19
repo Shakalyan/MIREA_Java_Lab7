@@ -17,6 +17,7 @@ public class SocketWrapper
     private BufferedReader reader;
     private BufferedWriter writer;
 
+
     public SocketWrapper(Socket socket, String name)
     {
         this.socket = socket;
@@ -49,10 +50,41 @@ public class SocketWrapper
 
     public Message getMessage() throws IOException
     {
-        String text = reader.readLine();
-        if(text == null)
+        String input = reader.readLine();
+        if(input == null)
             return null;
-        return new Message(this, 0, text);
+
+        int id = getIdFromInput(input);
+        if(id == -1)
+            return null;
+
+        String text;
+        if(id == 0)
+            text = input;
+        else
+            text = input.substring(0, input.lastIndexOf("<#"));
+
+        return new Message(this, id, text);
+    }
+
+    private int getIdFromInput(String input)
+    {
+        int openIndex = input.lastIndexOf("<#");
+        int closeIndex = input.lastIndexOf(">");
+
+        if(openIndex == -1 && closeIndex == -1)
+            return 0;
+
+        if(openIndex == -1 || closeIndex == -1 || openIndex > closeIndex)
+            return -1;
+
+        String id = input.substring(openIndex + 2, closeIndex);
+
+        for(int i = 0; i < id.length(); ++i)
+            if(!Character.isDigit(id.charAt(i)))
+                return -1;
+
+        return Integer.parseInt(id);
     }
 
     public void terminate()

@@ -39,7 +39,7 @@ public class ServerListener implements Runnable
             {
                 serverMessage = reader.readLine();
                 if(serverMessage != null)
-                    System.out.println("Server: " + serverMessage);
+                    System.out.println(serverMessage);
             }
         }
         catch(IOException e)

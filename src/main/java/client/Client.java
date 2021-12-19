@@ -29,7 +29,6 @@ public class Client
             String message = "";
             while(clientSocket.isConnected() && !message.equals("/exit"))
             {
-                System.out.print("send>");
                 message = scanner.nextLine();
                 sendMessage(message);
             }
