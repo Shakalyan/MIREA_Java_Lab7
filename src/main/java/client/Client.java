@@ -27,7 +27,7 @@ public class Client
             writer = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
 
             String message = "";
-            while(message != "/exit")
+            while(clientSocket.isConnected() && !message.equals("/exit"))
             {
                 System.out.print("send>");
                 message = scanner.nextLine();
