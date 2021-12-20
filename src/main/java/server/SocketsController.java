@@ -13,6 +13,7 @@ public class SocketsController implements Runnable
 {
 
     private ArrayDeque<Message> messagesPool;
+
     private LinkedList<SocketHandler> socketHandlers;
 
     private static final int checkTimer = 1000;
@@ -50,6 +51,34 @@ public class SocketsController implements Runnable
         }
     }
 
+    public void addMessage(Message message)
+    {
+        synchronized(messagesPool)
+        {
+            messagesPool.addFirst(message);
+        }
+    }
+
+    public void addTask(Task task, int receiverId)
+    {
+        if(receiverId == 0)
+        {
+            synchronized(socketHandlers)
+            {
+                for(var handler : socketHandlers)
+                    handler.addTask(task);
+                return;
+            }
+        }
+
+        SocketHandler handler = getHandlerById(receiverId);
+        if(handler == null)
+            return;
+
+        handler.addTask(task);
+    }
+
+
     @Override
     public void run()
     {
@@ -85,24 +114,32 @@ public class SocketsController implements Runnable
     {
         if(message.getReceiverId() == 0)
         {
-            for(var handler : socketHandlers)
+            synchronized(socketHandlers)
             {
-                if(!handler.getSocketWrapper().equals(message.getSender()))
-                    handler.addMessage(message);
+                for(var handler : socketHandlers)
+                {
+                    if(!handler.getSocketWrapper().equals(message.getSender()))
+                        handler.addMessage(message);
+                }
             }
-        }
-        SocketWrapper receiver = getSocketById(message.getReceiverId());
-        if(receiver == null)
             return;
-        receiver.sendMessage(message);
+        }
+
+        SocketHandler receiverHandler = getHandlerById(message.getReceiverId());
+        if(receiverHandler == null)
+            return;
+        receiverHandler.addMessage(message);
     }
 
-    private SocketWrapper getSocketById(int id)
+    private SocketHandler getHandlerById(int id)
     {
-        for(var socketHandler : socketHandlers)
+        synchronized(socketHandlers)
         {
-            if(socketHandler.getSocketWrapper().getId() == id)
-                return socketHandler.getSocketWrapper();
+            for(var socketHandler : socketHandlers)
+            {
+                if(socketHandler.getSocketWrapper().getId() == id)
+                    return socketHandler;
+            }
         }
         return null;
     }

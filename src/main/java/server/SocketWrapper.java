@@ -18,11 +18,12 @@ public class SocketWrapper
     private BufferedWriter writer;
 
 
-    public SocketWrapper(Socket socket, String name)
+
+    public SocketWrapper(Socket socket, String name, int id)
     {
         this.socket = socket;
         this.name = name;
-        this.id = nextId++;
+        this.id = id;
 
         try
         {
@@ -33,18 +34,26 @@ public class SocketWrapper
         {
             System.out.println(e.getMessage());
         }
-
     }
 
     public SocketWrapper(Socket socket)
     {
-        this(socket, "Client" + nextId);
+        this(socket, "Client" + nextId, nextId);
+        ++nextId;
+    }
+
+    public void sendMessage(String text, int receiverId) throws IOException
+    {
+        sendMessage(new Message(ServerConfiguration.serverSocketWrapper, receiverId, text));
     }
 
     public void sendMessage(Message message) throws IOException
     {
-        writer.write(   "<" + message.getSender().getName() + "#" + message.getSender().getId() + ">: " +
-                            message.getText() + "\n");
+        String text = String.format("<%s%s>: %s\n"  , message.getSender().getName()
+                                                    , (message.getSender().getId() == ServerConfiguration.SERVER_ID)? "" : "#" + message.getSender().getId()
+                                                    , message.getText());
+
+        writer.write(text);
         writer.flush();
     }
 
@@ -122,6 +131,11 @@ public class SocketWrapper
     public String getName()
     {
         return name;
+    }
+
+    public void setName(String name)
+    {
+        this.name = name;
     }
 
 }

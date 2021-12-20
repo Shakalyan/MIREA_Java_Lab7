@@ -1,7 +1,10 @@
 package server;
 
+import entities.Message;
+
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
@@ -20,11 +23,14 @@ public class ConnectionsController
     private SocketsController socketsController;
     private Thread socketsControllerThread;
 
+    private ArrayList<Task> initialTasks;
 
-    public ConnectionsController(ServerSocket serverSocket, LinkedList<SocketWrapper> clients)
+
+    public ConnectionsController(ServerSocket serverSocket, LinkedList<SocketWrapper> clients, ArrayList<Task> initialTasks)
     {
         this.clients = clients;
         this.serverSocket = serverSocket;
+        this.initialTasks = (ArrayList<Task>)initialTasks.clone();
 
         connectionsAccepter = new Thread(new ConnectionsAccepter());
         connectionsCleaner = new Thread(new ConnectionsCleaner());
@@ -54,6 +60,31 @@ public class ConnectionsController
         socketsControllerThread.join();
     }
 
+    public void sendServerMessage(String text, int receiverId)
+    {
+
+        Message message = new Message(ServerConfiguration.serverSocketWrapper, receiverId, text);
+
+        synchronized(socketsController)
+        {
+            socketsController.addMessage(message);
+        }
+    }
+
+    public void addTask(Task task, int receiverId)
+    {
+        synchronized(socketsController)
+        {
+            socketsController.addTask(task, receiverId);
+        }
+    }
+
+    private void addInitialTasks(SocketWrapper socketWrapper)
+    {
+        for(var task : initialTasks)
+            addTask(task, socketWrapper.getId());
+    }
+
 
     private class ConnectionsAccepter implements Runnable
     {
@@ -73,6 +104,7 @@ public class ConnectionsController
                     {
                         socketsController.addHandler(socketWrapper);
                     }
+                    addInitialTasks(socketWrapper);
                 }
             }
             catch(IOException e)

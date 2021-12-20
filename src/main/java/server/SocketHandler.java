@@ -1,11 +1,13 @@
 package server;
 
 import entities.Message;
+import entities.Response;
 
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 
 import static java.lang.Thread.getAllStackTraces;
 import static java.lang.Thread.interrupted;
@@ -18,6 +20,8 @@ public class SocketHandler
     private ArrayDeque<Message> messagesPool;
     private ArrayDeque<Message> localMessagesPool;
 
+    private ArrayDeque<Task> tasks;
+
     private Thread socketListener;
     private Thread socketWriter;
 
@@ -26,10 +30,19 @@ public class SocketHandler
     {
         this.socketWrapper = socketWrapper;
         this.messagesPool = messagesPool;
+
         localMessagesPool = new ArrayDeque<>();
+        tasks = new ArrayDeque<>();
 
         socketListener = new Thread(new SocketListener());
         socketWriter = new Thread(new SocketWriter());
+    }
+
+
+
+    public SocketWrapper getSocketWrapper()
+    {
+        return socketWrapper;
     }
 
     public void addMessage(Message message)
@@ -37,9 +50,12 @@ public class SocketHandler
         localMessagesPool.addLast(message);
     }
 
-    public SocketWrapper getSocketWrapper()
+    public void addTask(Task task)
     {
-        return socketWrapper;
+        synchronized(tasks)
+        {
+            tasks.addLast(task);
+        }
     }
 
     public void start()
@@ -72,15 +88,6 @@ public class SocketHandler
             {
                 while(!interrupted())
                 {
-                    Message message = null;
-                    while(message == null)
-                        message = socketWrapper.getMessage();
-
-                    synchronized(messagesPool)
-                    {
-                        messagesPool.addLast(message);
-                    }
-
                     try
                     {
                         Thread.sleep(readingDelay);
@@ -90,6 +97,26 @@ public class SocketHandler
                         System.out.println(e.getMessage());
                     }
 
+                    synchronized(tasks)
+                    {
+                        if(!tasks.isEmpty())
+                        {
+                            doTask();
+                            continue;
+                        }
+                    }
+
+                    Message message = socketWrapper.getMessage();
+                    if(message == null)
+                        continue;
+
+
+
+                    synchronized(messagesPool)
+                    {
+                        messagesPool.addLast(message);
+                    }
+
                 }
             }
             catch(IOException e)
@@ -97,6 +124,23 @@ public class SocketHandler
                 System.out.println(e.getMessage());
             }
 
+        }
+
+        private void doTask() throws IOException
+        {
+            synchronized(messagesPool)
+            {
+                localMessagesPool.addFirst(new Message(ServerConfiguration.serverSocketWrapper, socketWrapper.getId(), tasks.getFirst().getRequestPhrase()));
+            }
+
+            Message message = socketWrapper.getMessage();;
+            if(message == null)
+                return;
+
+            Response response = tasks.getFirst().doTask(socketWrapper, message.getText());
+            localMessagesPool.addFirst(new Message(ServerConfiguration.serverSocketWrapper, socketWrapper.getId(), response.getMessage()));
+            if(response.isDone())
+                tasks.pollFirst();
         }
 
     }
@@ -114,10 +158,16 @@ public class SocketHandler
                 {
                     synchronized(localMessagesPool)
                     {
-                        while(!localMessagesPool.isEmpty())
+                        ArrayList<Message> serverMessages = new ArrayList<>(localMessagesPool.stream().filter(m -> m.getSender().getId() == ServerConfiguration.SERVER_ID).toList());
+                        for(var message : serverMessages)
+                        {
+                            socketWrapper.sendMessage(message);
+                        }
+                        localMessagesPool.removeAll(serverMessages);
+
+                        while(!localMessagesPool.isEmpty() && tasks.isEmpty())
                         {
                             socketWrapper.sendMessage(localMessagesPool.pollFirst());
-
                         }
                     }
 
