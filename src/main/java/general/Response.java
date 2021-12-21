@@ -1,4 +1,4 @@
-package entities;
+package general;
 
 public class Response
 {

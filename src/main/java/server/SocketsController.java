@@ -1,8 +1,8 @@
 package server;
 
-import entities.Message;
+import general.Message;
+import general.Response;
 
-import javax.sound.sampled.Line;
 import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.LinkedList;
@@ -59,14 +59,15 @@ public class SocketsController implements Runnable
         }
     }
 
-    public void addTask(Task task, int receiverId)
+    public void addTask(Task task, SocketWrapper sender, int receiverId)
     {
         if(receiverId == 0)
         {
             synchronized(socketHandlers)
             {
                 for(var handler : socketHandlers)
-                    handler.addTask(task);
+                    if(handler.getSocketWrapper() != sender)
+                        handler.addTask(task);
                 return;
             }
         }
@@ -91,8 +92,8 @@ public class SocketsController implements Runnable
                     while(!messagesPool.isEmpty())
                     {
                         Message message = messagesPool.pollFirst();
+                        message = handleMessage(message);
                         sendMessage(message);
-                        //messagesPool.remove(message);
                     }
                 }
 
@@ -110,8 +111,39 @@ public class SocketsController implements Runnable
         }
     }
 
+    private Message handleMessage(Message message)
+    {
+
+        if(message.getType() == Message.Type.File)
+        {
+            Task sendFile = new Task(String.format("Do you want to save %s from %s?[y/n]", message.getExtraInfo(), message.getSender().getName()), message)
+            {
+                @Override
+                public Response doTask(SocketHandler client, String input) throws IOException
+                {
+                    if(input.equals("y"))
+                    {
+                        client.addMessage((Message)getArg(0));
+                        return new Response(true, "File's sent");
+                    }
+                    else if(input.equals("n"))
+                    {
+                        return new Response(true, "File sending denied");
+                    }
+                    return new Response(false, "Put answer[y/n]");
+                }
+            };
+            addTask(sendFile, message.getSender(), message.getReceiverId());
+            return null;
+        }
+
+        return message;
+    }
+
     private void sendMessage(Message message) throws IOException
     {
+        if(message == null)
+            return;
         if(message.getReceiverId() == 0)
         {
             synchronized(socketHandlers)

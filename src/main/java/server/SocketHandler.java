@@ -1,15 +1,13 @@
 package server;
 
-import entities.Message;
-import entities.Response;
+import general.Message;
+import general.MessageBuilder;
+import general.Response;
 
 import java.io.*;
-import java.net.ServerSocket;
-import java.net.Socket;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 
-import static java.lang.Thread.getAllStackTraces;
 import static java.lang.Thread.interrupted;
 
 public class SocketHandler
@@ -130,15 +128,15 @@ public class SocketHandler
         {
             synchronized(messagesPool)
             {
-                localMessagesPool.addFirst(new Message(ServerConfiguration.serverSocketWrapper, socketWrapper.getId(), tasks.getFirst().getRequestPhrase()));
+                localMessagesPool.addFirst(MessageBuilder.build(tasks.getFirst().getRequestPhrase(), ServerConfiguration.serverSocketWrapper, socketWrapper.getId()));
             }
 
             Message message = socketWrapper.getMessage();;
             if(message == null)
                 return;
 
-            Response response = tasks.getFirst().doTask(socketWrapper, message.getText());
-            localMessagesPool.addFirst(new Message(ServerConfiguration.serverSocketWrapper, socketWrapper.getId(), response.getMessage()));
+            Response response = tasks.getFirst().doTask(SocketHandler.this, message.getText());
+            localMessagesPool.addFirst(MessageBuilder.build(response.getMessage(), ServerConfiguration.serverSocketWrapper, socketWrapper.getId()));
             if(response.isDone())
                 tasks.pollFirst();
         }

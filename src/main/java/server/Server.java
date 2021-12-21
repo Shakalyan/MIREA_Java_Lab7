@@ -1,7 +1,7 @@
 package server;
 
-import entities.Message;
-import entities.Response;
+import general.Message;
+import general.Response;
 
 import java.io.*;
 import java.net.ServerSocket;
@@ -21,17 +21,17 @@ public class Server
 
     private static Task changeName = new Task("Put your name here:") {
         @Override
-        public Response doTask(SocketWrapper client, String input) throws IOException
+        public Response doTask(SocketHandler client, String input) throws IOException
         {
-            client.setName(input);
-            return new Response(true, "Name's changed");
+            client.getSocketWrapper().setName(input);
+            return new Response(true, "Name's changed to " + client.getSocketWrapper().getName());
         }
     };
 
     private static Task requirePassword = new Task("Put password here:")
     {
         @Override
-        public Response doTask(SocketWrapper client, String input) throws IOException
+        public Response doTask(SocketHandler client, String input) throws IOException
         {
             if(input.equals(password))
                 return new Response(true, "Password is correct");
@@ -39,6 +39,7 @@ public class Server
                 return new Response(false, "Password is wrong");
         }
     };
+
 
     public static void main(String[] args)
     {
@@ -60,29 +61,9 @@ public class Server
             int id = 0;
             do
             {
-                System.out.println("Put client id to change name:");
-                id = scanner.nextInt();
-                System.out.println("Add task...");
-                connectionsController.addTask(changeName, id);
+
             }
             while(id != 239842);
-
-
-            /*do
-            {
-                do
-                {
-                    System.out.print("Print your message: ");
-                    input = scanner.nextLine();
-                }
-                while(input.isBlank());
-
-                System.out.print("Print destination id: ");
-                int id = scanner.nextInt();
-                System.out.println("Sending your message...");
-                connectionsController.sendServerMessage(input, id);
-            }
-            while(!input.equals("exit"));*/
 
             connectionsController.terminate();
 

@@ -1,8 +1,9 @@
 package client;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import general.Message;
+import general.MessageBuilder;
+
+import java.io.*;
 import java.net.Socket;
 
 import static java.lang.Thread.interrupted;
@@ -37,9 +38,11 @@ public class ServerListener implements Runnable
         {
             while(!interrupted())
             {
-                serverMessage = reader.readLine();
+                serverMessage = MessageBuilder.readMessage("Server listener", reader);
+                String senderInfo = getSenderInfo(serverMessage);
+                serverMessage = MessageBuilder.convertToString(handleMessage(MessageBuilder.convertToMessage(serverMessage)), senderInfo);
                 if(serverMessage != null)
-                    System.out.println(serverMessage);
+                    System.out.println(hideMessageInfo(serverMessage));
             }
         }
         catch(IOException e)
@@ -53,6 +56,31 @@ public class ServerListener implements Runnable
 
     }
 
+    private Message handleMessage(Message message) throws IOException
+    {
+        if(message.getType() == Message.Type.File)
+        {
+            int dotIndex = message.getExtraInfo().indexOf(".");
+            String fileName = message.getExtraInfo().substring(0, dotIndex);
+            String fileExtension = message.getExtraInfo().substring(dotIndex);
+            String filePath = fileName + "C" + fileExtension;
+            writeFile(filePath, message.getText());
+            message.setText("File's been saved");
+            return message;
+        }
+        return message;
+    }
+
+    private void writeFile(String filePath, String text) throws IOException
+    {
+        File file = new File(filePath);
+        BufferedWriter writer = new BufferedWriter(new FileWriter(file));
+        writer.write(text);
+        writer.flush();
+        writer.close();
+    }
+
+
     private void terminate()
     {
         try
@@ -64,6 +92,23 @@ public class ServerListener implements Runnable
         {
             System.out.println(e.getMessage());
         }
+    }
+
+    private String hideMessageInfo(String message)
+    {
+        if(message == null)
+            return null;
+        int indexInfoEnd = message.indexOf(" ");
+        if(indexInfoEnd == -1)
+            return null;
+        return message.substring(indexInfoEnd + 1);
+    }
+
+    private String getSenderInfo(String message)
+    {
+        message = hideMessageInfo(message);
+        int endIndex = message.indexOf(">");
+        return message.substring(0, endIndex + 1);
     }
 
 }

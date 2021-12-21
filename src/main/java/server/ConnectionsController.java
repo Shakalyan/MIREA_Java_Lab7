@@ -1,10 +1,10 @@
 package server;
 
-import entities.Message;
+import general.Message;
+import general.MessageBuilder;
 
 import java.io.IOException;
 import java.net.ServerSocket;
-import java.net.Socket;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
@@ -63,7 +63,7 @@ public class ConnectionsController
     public void sendServerMessage(String text, int receiverId)
     {
 
-        Message message = new Message(ServerConfiguration.serverSocketWrapper, receiverId, text);
+        Message message = MessageBuilder.build(text, ServerConfiguration.serverSocketWrapper, receiverId);
 
         synchronized(socketsController)
         {
@@ -71,18 +71,18 @@ public class ConnectionsController
         }
     }
 
-    public void addTask(Task task, int receiverId)
+    public void addTask(Task task, SocketWrapper sender, int receiverId)
     {
         synchronized(socketsController)
         {
-            socketsController.addTask(task, receiverId);
+            socketsController.addTask(task, sender, receiverId);
         }
     }
 
     private void addInitialTasks(SocketWrapper socketWrapper)
     {
         for(var task : initialTasks)
-            addTask(task, socketWrapper.getId());
+            addTask(task, ServerConfiguration.serverSocketWrapper, socketWrapper.getId());
     }
 
 
