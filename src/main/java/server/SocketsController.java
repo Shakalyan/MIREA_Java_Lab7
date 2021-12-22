@@ -15,6 +15,7 @@ public class SocketsController implements Runnable
 {
 
     private ArrayDeque<Message> messagesPool;
+    private LinkedList<Message> last10Messages;
 
     private LinkedList<SocketHandler> socketHandlers;
 
@@ -24,6 +25,7 @@ public class SocketsController implements Runnable
     {
         messagesPool = new ArrayDeque<>();
         socketHandlers = new LinkedList<>();
+        last10Messages = new LinkedList<>();
     }
 
     public void addHandler(SocketWrapper socketWrapper)
@@ -34,6 +36,14 @@ public class SocketsController implements Runnable
         synchronized(socketHandlers)
         {
             socketHandlers.add(newHandler);
+        }
+
+        synchronized(last10Messages)
+        {
+            for(var message : last10Messages)
+            {
+                newHandler.addMessage(message);
+            }
         }
     }
 
@@ -95,6 +105,15 @@ public class SocketsController implements Runnable
                     {
                         Message message = messagesPool.pollFirst();
                         message = handleMessage(message);
+                        if(message != null && message.getReceiverId() == 0)
+                        {
+                            synchronized(last10Messages)
+                            {
+                                if(last10Messages.size() == 10)
+                                    last10Messages.pollFirst();
+                                last10Messages.addLast(message);
+                            }
+                        }
                         sendMessage(message);
                     }
                 }

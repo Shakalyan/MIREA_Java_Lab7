@@ -25,15 +25,8 @@ public class MessageBuilder
 
         while(true)
         {
-            String input = scanner.nextLine();
-            Message message = build(input);
-            String output;
-            if(message == null)
-                output = "ERROR";
-            else
-                output = convertToString(message);
-            System.out.println("Converted string: " + output);
-            System.out.println("Converted message: " + convertToString(convertToMessage(output)));
+
+
         }
 
     }
@@ -187,6 +180,16 @@ public class MessageBuilder
                 return Command.ChangeInterlocutor;
             case "/change_name":
                 return Command.ChangeName;
+            case "/send_object":
+                return Command.SendObject;
+            case "/print_objects_list":
+                return Command.PrintObjectsList;
+            case "/print_object":
+                return Command.PrintObject;
+            case "/add_object":
+                return Command.AddObject;
+            case "/delete_object":
+                return Command.DeleteObject;
             case "/exit":
                 return Command.Exit;
             default:

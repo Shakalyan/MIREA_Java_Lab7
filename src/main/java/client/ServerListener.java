@@ -2,9 +2,12 @@ package client;
 
 import general.Message;
 import general.MessageBuilder;
+import general.Pair;
 
 import java.io.*;
 import java.net.Socket;
+import java.util.Base64;
+import java.util.LinkedList;
 
 import static java.lang.Thread.interrupted;
 
@@ -13,10 +16,12 @@ public class ServerListener implements Runnable
 
     private Socket clientSocket;
     private BufferedReader reader;
+    private LinkedList<Pair<Object, String>> clientObjects;
 
-    ServerListener(Socket clientSocket)
+    ServerListener(Socket clientSocket, LinkedList<Pair<Object, String>> clientObjects)
     {
         this.clientSocket = clientSocket;
+        this.clientObjects = clientObjects;
 
         try
         {
@@ -45,7 +50,7 @@ public class ServerListener implements Runnable
                     System.out.println(hideMessageInfo(serverMessage));
             }
         }
-        catch(IOException e)
+        catch(Exception e)
         {
             System.out.println(e.getMessage());
         }
@@ -53,10 +58,17 @@ public class ServerListener implements Runnable
         {
             terminate();
         }
-
     }
 
-    private Message handleMessage(Message message) throws IOException
+    private static Object objectFromByteString(String byteString) throws IOException, ClassNotFoundException
+    {
+        byte[] bytes = Base64.getDecoder().decode(byteString);
+        ByteArrayInputStream ios = new ByteArrayInputStream(bytes);
+        ObjectInputStream ois = new ObjectInputStream(ios);
+        return ois.readObject();
+    }
+
+    private Message handleMessage(Message message) throws IOException, ClassNotFoundException
     {
         if(message.getType() == Message.Type.File)
         {
@@ -68,6 +80,20 @@ public class ServerListener implements Runnable
             message.setText("File's been saved");
             return message;
         }
+
+        if(message.getType() == Message.Type.Object)
+        {
+            Object object = objectFromByteString(message.getText());
+
+            synchronized(clientObjects)
+            {
+                clientObjects.add(new Pair(object, message.getExtraInfo()));
+            }
+
+            message.setText("Object has been saved");
+            return message;
+        }
+
         return message;
     }
 

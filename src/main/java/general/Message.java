@@ -9,7 +9,7 @@ public class Message
 
     public enum Type
     {
-        Text("Text"), File("File"), Command("Command");
+        Text("Text"), File("File"), Command("Command"), Object("Object");
 
         private String text;
 
