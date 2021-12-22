@@ -19,18 +19,6 @@ public class MessageBuilder
     // <20:FILE:SomeFile.txt> file data...
     // <40:COMMAND:CHANGE_INTERLOCUTOR> 4
 
-    public static void main(String[] args)
-    {
-        Scanner scanner = new Scanner(System.in);
-
-        while(true)
-        {
-
-
-        }
-
-    }
-
     public static String readMessage(String caller, BufferedReader reader) throws IOException
     {
         StringBuilder message = new StringBuilder("<");
@@ -152,7 +140,6 @@ public class MessageBuilder
         length = text.length();
 
         Message message = new Message(type, extraInfo, text, sender, receiverId);
-        //System.out.println(message);
 
         return message;
     }
@@ -195,15 +182,6 @@ public class MessageBuilder
             default:
                 return Command.Unknown;
         }
-    }
-
-    private static String getFileName(String input)
-    {
-        int firstIndex = input.indexOf(" ");
-        int lastIndex = input.indexOf(" ", firstIndex);
-        if(firstIndex == -1 || lastIndex == -1 || firstIndex == lastIndex)
-            return null;
-        return input.substring(firstIndex, lastIndex);
     }
 
 }

@@ -8,6 +8,7 @@ public enum Command
     AddObject("AddObject"), DeleteObject("DeleteObject");
 
     private String command;
+
     Command(String command)
     {
         this.command = command;

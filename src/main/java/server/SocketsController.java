@@ -145,7 +145,7 @@ public class SocketsController implements Runnable
                     if(input.equals("y"))
                     {
                         client.addMessage((Message)getArg(0));
-                        return new Response(true, "File's sent");
+                        return new Response(true, "File has been sent");
                     }
                     else if(input.equals("n"))
                     {
@@ -156,6 +156,30 @@ public class SocketsController implements Runnable
             };
             addTask(sendFile, message.getSender(), message.getReceiverId());
             return null;
+        }
+        else if(message.getType() == Message.Type.Object)
+        {
+
+            Task sendObject = new Task(String.format("Do you want to save %s from %s?[y/n]", message.getExtraInfo(), message.getSender().getName()), message)
+            {
+                @Override
+                public Response doTask(SocketHandler client, String input) throws IOException
+                {
+                    if(input.equals("y"))
+                    {
+                        client.addMessage((Message)getArg(0));
+                        return new Response(true, "Object has been sent");
+                    }
+                    else if(input.equals("n"))
+                    {
+                        return new Response(true, "Object sending denied");
+                    }
+                    return new Response(false, "Put answer[y/n]");
+                }
+            };
+            addTask(sendObject, message.getSender(), message.getReceiverId());
+            return null;
+
         }
         else if(message.getType() == Message.Type.Command)
         {

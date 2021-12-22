@@ -110,15 +110,4 @@ public class Message
         receiverId = id;
     }
 
-    @Override
-    public String toString()
-    {
-        return  length      + " " +
-                type        + " " +
-                extraInfo   + " " +
-                text        + " " +
-                sender      + " " +
-                receiverId;
-    }
-
 }

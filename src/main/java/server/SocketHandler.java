@@ -66,6 +66,7 @@ public class SocketHandler
     {
         socketListener.interrupt();
         socketWriter.interrupt();
+        socketWrapper.terminate();
     }
 
     public void join() throws InterruptedException
