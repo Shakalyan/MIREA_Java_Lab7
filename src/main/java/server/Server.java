@@ -1,5 +1,6 @@
 package server;
 
+import general.Log;
 import general.Message;
 import general.Response;
 
@@ -48,6 +49,9 @@ public class Server
         initialTasks.add(requirePassword);
         initialTasks.add(changeName);
 
+        Log.startAutoLogger();
+
+
         try
         {
             serverSocket = new ServerSocket(8080);
@@ -58,37 +62,34 @@ public class Server
 
             Scanner scanner = new Scanner(System.in);
             String input = "";
-            int id = 0;
             do
             {
-
+                input = scanner.nextLine();
             }
-            while(id != 239842);
+            while(!input.equals("/stop"));
 
+            serverSocket.close();
             connectionsController.terminate();
 
             connectionsController.join();
 
         }
-        catch(IOException e)
+        catch(Exception e)
         {
-            System.out.println(e.getMessage());
-        }
-        catch(InterruptedException e)
-        {
-            System.out.println(e.getMessage());
+            Log.writeInfo("[Server][main]: exception: " + e.getMessage());
         }
         finally
         {
             try
             {
-                if(serverSocket != null) serverSocket.close();
+                serverSocket.close();
             }
             catch(IOException e)
             {
-                System.out.println(e.getMessage());
+                Log.writeInfo("[Server][main]: exception: " + e.getMessage());
             }
-
+            System.out.println("Log history:");
+            Log.printHistory();
         }
 
     }

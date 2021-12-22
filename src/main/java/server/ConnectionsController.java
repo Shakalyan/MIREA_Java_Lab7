@@ -1,5 +1,6 @@
 package server;
 
+import general.Log;
 import general.Message;
 import general.MessageBuilder;
 
@@ -96,6 +97,8 @@ public class ConnectionsController
                 while(!interrupted())
                 {
                     SocketWrapper socketWrapper = new SocketWrapper(serverSocket.accept());
+                    Log.writeInfo("[ConnectionsAccepter][run]: accepted new socket");
+
                     synchronized(clients)
                     {
                         clients.add(socketWrapper);
@@ -109,8 +112,9 @@ public class ConnectionsController
             }
             catch(IOException e)
             {
-                System.out.println("Connection accepter: " + e.getMessage());
+                Log.writeInfo("[ConnectionsAccepter][run]: exception: " + e.getMessage());
             }
+            Log.writeInfo("[ConnectionsAccepter][run]: terminated");
         }
     }
 
@@ -135,7 +139,10 @@ public class ConnectionsController
                 synchronized(socketsController)
                 {
                     for(var client : clientsToDelete)
+                    {
                         socketsController.removeHandler(client);
+                        Log.writeInfo("[ConnectionsCleaner][run]: delete " + client.getName());
+                    }
                 }
 
                 try
@@ -144,10 +151,11 @@ public class ConnectionsController
                 }
                 catch(InterruptedException e)
                 {
-                    System.out.println(e.getMessage());
+                    Log.writeInfo("[ConnectionsCleaner][run]: exception: " + e.getMessage());
+                    break;
                 }
-
             }
+            Log.writeInfo("[ConnectionsCleaner][run]: terminated");
         }
     }
 

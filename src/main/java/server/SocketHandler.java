@@ -1,5 +1,6 @@
 package server;
 
+import general.Log;
 import general.Message;
 import general.MessageBuilder;
 import general.Response;
@@ -109,7 +110,7 @@ public class SocketHandler
                     if(message == null)
                         continue;
 
-
+                    Log.writeInfo("[SocketListener][run]: new message: " + MessageBuilder.convertToString(message));
 
                     synchronized(messagesPool)
                     {
@@ -120,7 +121,7 @@ public class SocketHandler
             }
             catch(IOException e)
             {
-                System.out.println(e.getMessage());
+                Log.writeInfo("[SocketListener][run]: exception: " + e.getMessage());
             }
 
         }
@@ -176,14 +177,14 @@ public class SocketHandler
                     }
                     catch(InterruptedException e)
                     {
-                        System.out.println(e.getMessage());
+                        Log.writeInfo("[SocketWriter][run]: exception: " + e.getMessage());
                     }
 
                 }
             }
             catch(IOException e)
             {
-                System.out.println(e.getMessage());
+                Log.writeInfo("[SocketWriter][run]: exception: " + e.getMessage());
             }
         }
 

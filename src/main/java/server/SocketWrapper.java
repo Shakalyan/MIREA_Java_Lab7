@@ -1,5 +1,6 @@
 package server;
 
+import general.Log;
 import general.Message;
 import general.MessageBuilder;
 import general.Response;
@@ -36,7 +37,7 @@ public class SocketWrapper
         }
         catch(IOException e)
         {
-            System.out.println(e.getMessage());
+            Log.writeInfo("[SocketWrapper][Constructor]: exception: " + e.getMessage());
         }
     }
 
@@ -73,7 +74,7 @@ public class SocketWrapper
         }
         catch(IOException e)
         {
-            System.out.println(e.getMessage());
+            Log.writeInfo("[SocketWrapper][terminate]: exception: " + e.getMessage());
         }
     }
 

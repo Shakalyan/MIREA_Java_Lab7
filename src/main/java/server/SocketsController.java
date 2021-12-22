@@ -1,9 +1,6 @@
 package server;
 
-import general.Command;
-import general.Message;
-import general.MessageBuilder;
-import general.Response;
+import general.*;
 
 import java.io.IOException;
 import java.util.ArrayDeque;
@@ -122,14 +119,16 @@ public class SocketsController implements Runnable
             }
             catch(IOException e)
             {
-                System.out.println(e.getMessage());
+                Log.writeInfo("[SocketsController][run]: exception: " + e.getMessage());
             }
             catch(InterruptedException e)
             {
-                System.out.println(e.getMessage());
+                Log.writeInfo("[SocketsController][run]: exception: " + e.getMessage());
+                break;
             }
 
         }
+        Log.writeInfo("[SocketsController][run]: terminated");
     }
 
     private Message handleMessage(Message message) throws IOException
@@ -142,6 +141,8 @@ public class SocketsController implements Runnable
                 @Override
                 public Response doTask(SocketHandler client, String input) throws IOException
                 {
+                    Log.writeInfo("[SocketsController][handleMessage]: " + getArg(1) + " input: " + input);
+
                     if(input.equals("y"))
                     {
                         client.addMessage((Message)getArg(0));
@@ -165,6 +166,8 @@ public class SocketsController implements Runnable
                 @Override
                 public Response doTask(SocketHandler client, String input) throws IOException
                 {
+                    Log.writeInfo("[SocketsController][handleMessage]: " + getArg(1) + " input: " + input);
+
                     if(input.equals("y"))
                     {
                         client.addMessage((Message)getArg(0));
