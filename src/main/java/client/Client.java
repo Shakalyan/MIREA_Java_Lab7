@@ -1,5 +1,6 @@
 package client;
 
+import general.Command;
 import general.Message;
 import general.MessageBuilder;
 
@@ -45,10 +46,10 @@ public class Client
 
                 if(message.getType().equals(Message.Type.Command))
                 {
-                    if(message.getExtraInfo().equals("EXIT"))
+                    if(message.getExtraInfo().equals(Command.Exit.getCommandText()))
                         break;
 
-                    if(message.getExtraInfo().equals("SEND_FILE"))
+                    if(message.getExtraInfo().equals(Command.SendFile.getCommandText()))
                     {
                         String fileData = readFile(message.getText());
                         if(fileData == null)

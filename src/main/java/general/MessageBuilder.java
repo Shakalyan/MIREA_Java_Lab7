@@ -185,6 +185,8 @@ public class MessageBuilder
                 return Command.SendFile;
             case "/change_interlocutor":
                 return Command.ChangeInterlocutor;
+            case "/change_name":
+                return Command.ChangeName;
             case "/exit":
                 return Command.Exit;
             default:

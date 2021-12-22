@@ -105,4 +105,14 @@ public class SocketWrapper
         this.name = name;
     }
 
+    public int getReceiverId()
+    {
+        return receiverId;
+    }
+
+    public void setReceiverId(int id)
+    {
+        receiverId = id;
+    }
+
 }

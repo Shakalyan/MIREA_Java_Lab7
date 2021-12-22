@@ -1,6 +1,8 @@
 package server;
 
+import general.Command;
 import general.Message;
+import general.MessageBuilder;
 import general.Response;
 
 import java.io.IOException;
@@ -111,7 +113,7 @@ public class SocketsController implements Runnable
         }
     }
 
-    private Message handleMessage(Message message)
+    private Message handleMessage(Message message) throws IOException
     {
 
         if(message.getType() == Message.Type.File)
@@ -135,6 +137,24 @@ public class SocketsController implements Runnable
             };
             addTask(sendFile, message.getSender(), message.getReceiverId());
             return null;
+        }
+        else if(message.getType() == Message.Type.Command)
+        {
+
+            if(message.getExtraInfo().equals(Command.ChangeInterlocutor.getCommandText()))
+            {
+                int id = Integer.parseInt(message.getText());
+                message.getSender().setReceiverId(id);
+                sendMessage(MessageBuilder.build("Interlocutor has been changed", ServerConfiguration.serverSocketWrapper, message.getSender().getId()));
+                return null;
+            }
+            else if(message.getExtraInfo().equals(Command.ChangeName.getCommandText()))
+            {
+                message.getSender().setName(message.getText());
+                sendMessage(MessageBuilder.build("Name has been changed", ServerConfiguration.serverSocketWrapper, message.getSender().getId()));
+                return null;
+            }
+
         }
 
         return message;

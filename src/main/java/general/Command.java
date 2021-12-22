@@ -2,8 +2,8 @@ package general;
 
 public enum Command
 {
-    Unknown("UNKNOWN"), SendFile("SEND_FILE"), ChangeInterlocutor("CHANGE_INTERLOCUTOR"),
-    Exit("EXIT");
+    Unknown("Unknown"), SendFile("SendFile"), ChangeInterlocutor("ChangeInterlocutor"),
+    Exit("Exit"), ChangeName("ChangeName");
 
     private String command;
     Command(String command)
